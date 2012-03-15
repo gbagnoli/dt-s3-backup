@@ -23,12 +23,12 @@
 # ---------------------------------------------------------------------------- #
 
 # AMAZON S3 INFORMATION
-export AWS_ACCESS_KEY_ID="foobar_aws_key_id"
-export AWS_SECRET_ACCESS_KEY="foobar_aws_access_key"
+AWS_ACCESS_KEY_ID="foobar_aws_key_id"
+AWS_SECRET_ACCESS_KEY="foobar_aws_access_key"
 
 # If you aren't running this from a cron, comment this line out
 # and duplicity should prompt you for your password.
-export PASSPHRASE="foobar_gpg_passphrase"
+PASSPHRASE="foobar_gpg_passphrase"
 
 # Specify which GPG key you would like to use (even if you have only one).
 GPG_KEY="foobar_gpg_key"
@@ -126,6 +126,34 @@ EMAIL_SUBJECT=
 ##############################################################
 # Script Happens Below This Line - Shouldn't Require Editing #
 ##############################################################
+
+# Read config file
+CONFIG=
+while :
+do
+    case $1 in
+        -c | --config)
+            CONFIG=$2
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+if [ ! -z "$CONFIG" -a -f "$CONFIG" ];
+then
+  . $CONFIG
+elif [ ! -z "$CONFIG" -a ! -f "$CONFIG" ];
+then
+  echo "ERROR: can't find config file!" >&2
+fi
+
+export AWS_ACCESS_KEY_ID
+export AWS_SECRET_ACCESS_KEY
+export PASSPHRASE
+
 LOGFILE="${LOGDIR}${LOG_FILE}"
 DUPLICITY="$(which duplicity)"
 S3CMD="$(which s3cmd)"
@@ -416,7 +444,7 @@ elif [ "$1" = "--backup" ]; then
 else
   echo -e "[Only show `basename $0` usage options]\n" >> ${LOGFILE}
   echo "  USAGE:
-    `basename $0` [options]
+    `basename $0` [-c configfile] [options]
 
   Options:
     --backup: runs an incremental backup
