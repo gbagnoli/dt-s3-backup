@@ -33,6 +33,9 @@ PASSPHRASE="foobar_gpg_passphrase"
 # Specify which GPG key you would like to use (even if you have only one).
 GPG_KEY="foobar_gpg_key"
 
+# Do you want your backup to be encrypted? YES/NO
+ENCRYPTION='YES'
+
 # The ROOT of your backup (where you want the backup to start);
 # This can be / or somwhere else -- I use /home/ because all the
 # directories start with /home/ that I want to backup.
@@ -159,6 +162,13 @@ DUPLICITY="$(which duplicity)"
 S3CMD="$(which s3cmd)"
 MAIL="$(which mailx)"
 
+if [[ "$ENCRYPTION" =~ ^[yY] ]]
+then
+  ENCRYPT="--encrypt-key=${GPG_KEY} --sign-key=${GPG_KEY}"
+else
+  ENCRYPT="--no-encryption"
+fi
+
 NO_S3CMD="WARNING: s3cmd is not installed, remote file \
 size information unavailable."
 NO_S3CMD_CFG="WARNING: s3cmd is not configured, run 's3cmd --configure' \
@@ -253,8 +263,7 @@ duplicity_cleanup()
 {
   echo "-----------[ Duplicity Cleanup ]-----------" >> ${LOGFILE}
   ${ECHO} ${DUPLICITY} ${CLEAN_UP_TYPE} ${CLEAN_UP_VARIABLE} ${STATIC_OPTIONS} --force \
-        --encrypt-key=${GPG_KEY} \
-        --sign-key=${GPG_KEY} \
+        ${ENCRYPT} \
         ${DEST} >> ${LOGFILE}
   echo >> ${LOGFILE}
 }
@@ -262,8 +271,7 @@ duplicity_cleanup()
 duplicity_backup()
 {
   ${ECHO} ${DUPLICITY} ${OPTION} ${VERBOSITY} ${STATIC_OPTIONS} \
-  --encrypt-key=${GPG_KEY} \
-  --sign-key=${GPG_KEY} \
+  ${ENCRYPT} \
   ${EXCLUDE} \
   ${INCLUDE} \
   ${EXCLUDEROOT} \
