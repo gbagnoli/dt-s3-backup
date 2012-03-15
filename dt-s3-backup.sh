@@ -177,10 +177,15 @@ get_source_file_size()
 
   for include in ${INCLIST[@]}
     do
-      echo -e $DUEXCLIST | \
-      du -hs --exclude-from="-" ${include} | \
-      awk '{ print $2"\t"$1 }' \
-      >> ${LOGFILE}
+      for duexclude in ${DUEXCLIST[@]}
+        do
+          if [ "$include" != "$duexclude" ];
+          then
+             du -hs ${include} | \
+             awk '{ print $2"\t"$1 }' \
+             >> ${LOGFILE}
+          fi
+      done
   done
   echo >> ${LOGFILE}
 }
