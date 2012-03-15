@@ -446,7 +446,7 @@ elif [ "$1" = "--collection-status" ]; then
   check_variables
   OPTION="collection-status"
   ${DUPLICITY} ${OPTION} ${VERBOSITY} ${STATIC_OPTIONS} \
-  $ENCRYPT \
+  ${ENCRYPT} \
   ${DEST}
 	echo -e "--------    END    --------\n" >> ${LOGFILE}
 
