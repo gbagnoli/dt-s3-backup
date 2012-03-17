@@ -284,7 +284,7 @@ get_file_sizes()
   get_source_file_size
   get_remote_file_size
 
-  sed -i '' -e '/^--*$/d' ${LOGFILE}
+  sed -i -e '/^--*$/d' ${LOGFILE}
   chown ${LOG_FILE_OWNER} ${LOGFILE}
 }
 
