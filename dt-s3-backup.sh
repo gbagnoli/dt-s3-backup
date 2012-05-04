@@ -28,7 +28,7 @@ export AWS_SECRET_ACCESS_KEY="foobar_aws_access_key"
 
 # If you aren't running this from a cron, comment this line out
 # and duplicity should prompt you for your password.
-export PASSPHRASE="foobar_gpg_passphrase"
+#export PASSPHRASE="foobar_gpg_passphrase"
 
 # Specify which GPG key you would like to use (even if you have only one).
 GPG_KEY="foobar_gpg_key"
@@ -126,6 +126,12 @@ EMAIL_SUBJECT=
 ##############################################################
 # Script Happens Below This Line - Shouldn't Require Editing #
 ##############################################################
+
+settings_file=${HOME}/.dt-s3-backup.conf.sh
+global_settings_file=/etc/dt-s3-backup.conf.sh
+[ -f $global_settings_file ] && source $global_settings_file
+[ -f $settings_file ] && source $settings_file
+
 LOGFILE="${LOGDIR}${LOG_FILE}"
 DUPLICITY="$(which duplicity)"
 S3CMD="$(which s3cmd)"
