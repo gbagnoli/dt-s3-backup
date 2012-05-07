@@ -61,15 +61,21 @@ DEST="file:///home/foobar_user_name/new-backup-test/"
 #        )
 #
 # Simpler example with one location:
-INCLIST=( "/home/foobar_user_name/Documents/Prose/" ) 
+# INCLIST=( "/home/foobar_user_name/Documents/Prose/" ) 
+declare -a INCLIST
 
 # EXCLUDE LIST OF DIRECTORIES
 # Even though I am being specific about what I want to include,
 # there is still a lot of stuff I don't need.
-EXCLIST=(   "/home/*/Trash" \
-            "/home/*/Projects/Completed" \
-            "/**.DS_Store" "/**Icon?" "/**.AppleDouble" \
-        )
+# EXCLIST=(   "/home/*/Trash" \
+#             "/home/*/Projects/Completed" \
+#             "/**.DS_Store" "/**Icon?" "/**.AppleDouble" \
+#         )
+declare -a EXCLIST
+
+# EXCLUDE/INCLUDE FILES FROM FILE
+declare -a INCFILELIST
+declare -a EXCFILELIST
 
 # STATIC BACKUP OPTIONS
 # Here you can define the static backup options that you want to run with
@@ -99,6 +105,7 @@ CLEAN_UP_VARIABLE="2"
 # just makes it easier for me to read them and delete them as needed.
 
 LOGDIR="/home/foobar_user_name/logs/test2/"
+ARCHIVEDIR="~/.cache/duplicity"
 LOG_FILE="duplicity-`date +%Y-%m-%d_%H-%M`.txt"
 LOG_FILE_OWNER="foobar_user_name:foobar_user_name"
 VERBOSITY="-v3"
@@ -210,16 +217,30 @@ get_remote_file_size()
 include_exclude()
 {
   for include in ${INCLIST[@]}
-    do
-      TMP=" --include="$include
-      INCLUDE=$INCLUDE$TMP
+  do
+    TMP=" --include="$include
+    INCLUDE=$INCLUDE$TMP
   done
+
   for exclude in ${EXCLIST[@]}
-      do
-      TMP=" --exclude "$exclude
-      EXCLUDE=$EXCLUDE$TMP
-    done
-    EXCLUDEROOT="--exclude=**"
+  do
+    TMP=" --exclude "$exclude
+    EXCLUDE=$EXCLUDE$TMP
+  done
+
+  EXCLUDEROOT="--exclude=**"
+
+  for include in ${INCFILELIST[@]}
+  do
+    TMP=" --include-globbing-filelist="$include
+    INCLUDE=$INCLUDE$TMP
+  done
+
+  for exclude in ${EXCFILELIST[@]}
+  do
+    TMP=" --include-globbing-filelist="$include
+    EXCLUDE=$EXCLUDE$TMP
+  done
 }
 
 duplicity_cleanup()
@@ -228,6 +249,7 @@ duplicity_cleanup()
   ${ECHO} ${DUPLICITY} ${CLEAN_UP_TYPE} ${CLEAN_UP_VARIABLE} ${STATIC_OPTIONS} --force \
         --encrypt-key=${GPG_KEY} \
         --sign-key=${GPG_KEY} \
+        --archive-dir=${ARCHIVEDIR} \
         ${DEST} >> ${LOGFILE}
   echo >> ${LOGFILE}
 }
@@ -237,6 +259,7 @@ duplicity_backup()
   ${ECHO} ${DUPLICITY} ${OPTION} ${VERBOSITY} ${STATIC_OPTIONS} \
   --encrypt-key=${GPG_KEY} \
   --sign-key=${GPG_KEY} \
+  --archive-dir=${ARCHIVEDIR} \
   ${EXCLUDE} \
   ${INCLUDE} \
   ${EXCLUDEROOT} \
@@ -292,11 +315,12 @@ backup_this_script()
 
 check_variables ()
 {
-  if [[ ${ROOT} = "" || ${DEST} = "" || ${INCLIST} = "" || \
+  if [[ ${ROOT} = "" || ${DEST} = "" || \
         ${AWS_ACCESS_KEY_ID} = "foobar_aws_key_id" || \
         ${AWS_SECRET_ACCESS_KEY} = "foobar_aws_access_key" || \
         ${GPG_KEY} = "foobar_gpg_key" || \
-        ${PASSPHRASE} = "foobar_gpg_passphrase" ]]; then
+        ${PASSPHRASE} = "foobar_gpg_passphrase" ]] || \
+     [[ ${INCLIST} = "" && ${INCFILELIST} = "" ]]; then
     echo -e ${CONFIG_VAR_MSG}
     echo -e ${CONFIG_VAR_MSG}"\n--------    END    --------" >> ${LOGFILE}
     exit 1
@@ -435,6 +459,8 @@ else
     DEST (backup destination) = ${DEST}
     INCLIST (directories included) = ${INCLIST[@]:0}
     EXCLIST (directories excluded) = ${EXCLIST[@]:0}
+    INCFILELIST = ${INCFILELIST[@]:0}
+    EXCFILELIST = ${EXCFILELIST[@]:0}
     ROOT (root directory of backup) = ${ROOT}
   "
 fi
